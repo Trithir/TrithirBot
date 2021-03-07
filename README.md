@@ -3,14 +3,21 @@
 ## What is this?
 
 This is a bot that listens to the chat of a given Twitch stream for messages
-with a Spotify song link in them and then adds that song to a playlist and/or
-your queue. The Spotify link must be at the start of the message in order to be picked up.
+with a Spotify song link, or "artist" - "track" in them, and then adds that song to a playlist and/or
+your queue. 
+
+Examples:
 
 ✔️ Message that WOULD be picked up:
 
 ```
 https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ pls play this, it's a bop
+
+Reel big fish - trendy
+
+social distortion-prison bound
 ```
+Note: Artist name and song title must be spelled correctly, and in the proper order. Letter case does not matter.
 
 ❌ Message that WOULD NOT be picked up:
 
