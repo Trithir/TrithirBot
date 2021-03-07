@@ -2,7 +2,7 @@ import tmi, { ChatUserstate } from 'tmi.js';
 import {getTrackIdFromLink, SPOTIFY_LINK_START} from './messageUtils';
 import SpotifyService from './spotify.service';
 import { TWITCH_CHANNEL, COMMAND_PREFIX } from './config.json';
-
+import {getArtistName, getSongName} from './messageUtils';
 export default class TwitchService {
   constructor(private spotifyService: SpotifyService) {}
 
@@ -42,14 +42,26 @@ export default class TwitchService {
     if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX)) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       msg = msg.substring(`${COMMAND_PREFIX} `.length);
-      if (msg.startsWith(SPOTIFY_LINK_START)) {
+      if (msg.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
+       {
         await this.handleSpotifyLink(msg);
       } else {
-        console.log('Command used but no Spotify link provided');
+        await this.handleSearch(msg);
       }
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
   }
+
+  private async handleSearch(message: string){
+    const songName = getSongName(message);
+    const artistName = getArtistName(message);
+    if (songName && artistName){
+      await this.spotifyService.searchAndAdd(songName, artistName)
+    } else {
+      console.error('Unable to parse songName and artistName from message')
+    }
+  }
+
 
   private async handleSpotifyLink(message: string) {
     const trackId = getTrackIdFromLink(message);

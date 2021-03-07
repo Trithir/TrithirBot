@@ -5,8 +5,7 @@ export const waitForCode = (onCodeReceived: Function) => {
   const app = express();
   const port = AUTH_SERVER_PORT;
 
-  const server = app.listen(port, (err: Error) => {
-    if(err) return console.error(err);
+  const server = app.listen(port, () => {
     return console.log(`Auth server is listening on ${port}`);
   });
 

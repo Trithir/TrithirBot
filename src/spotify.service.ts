@@ -86,18 +86,25 @@ export default class SpotifyService {
     }
   }
 
-  private async addToPlaylist(trackId: string, songName: string) {
+  public async searchAndAdd(songName: string, artistName: string) {
+    try {
+    const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
+      await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name)
+      console.log(searchInfo.body.tracks?.items[0].id)
+      }
+    catch (e){
+      console.log('Something went wrong!', e);
+    }
+}
+
+  private async addToPlaylist(trackId: string | undefined, songName: string | undefined) {
     try {
       if (config.SPOTIFY_PLAYLIST_ID) {
-        if (await this.doesPlaylistContainTrack(trackId)) {
-          console.log(`${songName} is already in playlist`);
-        } else {
           await this.spotifyApi.addTracksToPlaylist(
             config.SPOTIFY_PLAYLIST_ID,
             [this.createTrackURI(trackId)]
           );
           console.log(`Added ${songName} to playlist`);
-        }
       } else {
         console.error(
           'Error: Cannot add to playlist - Please provide a playlist ID in the config file'
@@ -108,7 +115,7 @@ export default class SpotifyService {
     }
   }
 
-  private createTrackURI = (trackId: string): string =>
+  private createTrackURI = (trackId: string | undefined): string =>
     `spotify:track:${trackId}`;
 
   private async doesPlaylistContainTrack(trackId: string) {
