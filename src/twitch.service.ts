@@ -1,22 +1,29 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import {getTrackIdFromLink, SPOTIFY_LINK_START} from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN } from './config.json';
 import {getArtistName, getSongName} from './messageUtils';
+
 export default class TwitchService {
+  twitchOptions = {
+    channels: [TWITCH_CHANNEL],
+    identity: {
+      username: BOT_USERNAME,
+      password: TWITCH_TOKEN,
+    },
+  };
+
+  twitchClient = tmi.client(this.twitchOptions);
+
   constructor(private spotifyService: SpotifyService) {}
 
   public async connectToChat() {
-    const twitchOptions = {
-      channels: [TWITCH_CHANNEL],
-    };
-    const twitchClient = tmi.client(twitchOptions);
 
-    twitchClient.on('connected', (_addr: string, _port: number) =>
+    this.twitchClient.on('connected', (_addr: string, _port: number) =>
       console.log(`Connected to ${TWITCH_CHANNEL}'s chat`)
     );
 
-    twitchClient.on(
+    this.twitchClient.on(
       'message',
       async (
         target: string,
@@ -26,7 +33,7 @@ export default class TwitchService {
       ) => await this.handleMessage(target, userState, msg, self)
     );
 
-    await twitchClient.connect();
+    await this.twitchClient.connect();
   }
 
   private async handleMessage(
@@ -50,7 +57,20 @@ export default class TwitchService {
       }
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
+
+  if (DROP_PREFIX && msg.startsWith(DROP_PREFIX)) {
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+    this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix 5 times!");
+    // client.say("channel", "Your message")
+    //   .then((data) => {
+    //       // data returns [channel]
+    //   }).catch((err) => {
+    //       //
+    // });
+    // DropCount += 1
+    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
   }
+}
 
   private async handleSearch(message: string){
     const songName = getSongName(message);
