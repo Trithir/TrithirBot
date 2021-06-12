@@ -50,7 +50,7 @@ export default class TwitchService {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       msg = msg.substring(`${COMMAND_PREFIX} `.length);
       if (msg.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
-       {
+      {
         await this.handleSpotifyLink(msg);
       } else {
         await this.handleSearch(msg);
@@ -60,6 +60,8 @@ export default class TwitchService {
 
   if (DROP_PREFIX && msg.startsWith(DROP_PREFIX)) {
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+    // let reader = new FileReader();
+    // reader.readAsText("../DropCount.txt");
     this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix 5 times!");
     // client.say("channel", "Your message")
     //   .then((data) => {
