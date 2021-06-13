@@ -60,16 +60,15 @@ export default class TwitchService {
 
   if (DROP_PREFIX && msg.startsWith(DROP_PREFIX)) {
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    // let reader = new FileReader();
-    // reader.readAsText("../DropCount.txt");
-    this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix 5 times!");
-    // client.say("channel", "Your message")
-    //   .then((data) => {
-    //       // data returns [channel]
-    //   }).catch((err) => {
-    //       //
-    // });
-    // DropCount += 1
+    const fsLibrary  = require('fs')
+    let count = await fsLibrary.readFile('DropCount.txt', ((error: any, txtString: any) => {
+      count = +txtString + 1;
+      this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix " + count + " times!");
+      fsLibrary.writeFile('DropCount.txt', count.toString(), (error: any) => {
+        if (error) throw error;
+      })
+      if (error) throw error;
+    }))
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
   }
 }
