@@ -99,11 +99,16 @@ export default class SpotifyService {
 
   private async addToPlaylist(trackId: string | undefined, songName: string | undefined) {
     try {
-      if (config.SPOTIFY_PLAYLIST_ID) {
+      if (config.SPOTIFY_PLAYLIST_ID && config.SPOTIFY_PLAYLIST_ID2) {
           await this.spotifyApi.addTracksToPlaylist(
             config.SPOTIFY_PLAYLIST_ID,
             [this.createTrackURI(trackId)]
+          );         
+           await this.spotifyApi.addTracksToPlaylist(
+            config.SPOTIFY_PLAYLIST_ID2,
+            [this.createTrackURI(trackId)]
           );
+ 
           console.log(`Added ${songName} to playlist`);
       } else {
         console.error(
