@@ -7,6 +7,6 @@
   "ADD_TO_PLAYLIST": true,
   "COMMAND_PREFIX": "!Sr",
   "AUTH_SERVER_PORT": 8000,
-  "BOT_USERNAME": "SkewpzDidIt",
+  "BOT_USERNAME": "",
   "TWITCH_TOKEN": "https://twitchapps.com/tmi/"
 }

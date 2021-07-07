@@ -3,7 +3,7 @@
 ## What is this?
 
 This is a bot that listens to the chat of a given Twitch stream for messages
-with a Spotify song link, or "artist" - "track" in them, and then adds that song to a playlist and/or
+with a Spotify song link, or artist - track requests in them, and then adds that song to a playlist and/or
 your queue. 
 
 Examples:
@@ -11,18 +11,20 @@ Examples:
 ✔️ Message that WOULD be picked up:
 
 ```
-https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ pls play this, it's a bop
+!Sr https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ pls play this, it's a bop
 
-Reel big fish - trendy
+!Sr Reel big fish - trendy
 
-social distortion-prison bound
+!Sr social distortion-prison bound
+
 ```
-Note: Artist name and song title must be spelled correctly, and in the proper order. Letter case does not matter.
+Note: Artist name and song title must be spelled correctly(I think), and in the proper order. Letter case does not matter.
 
 ❌ Message that WOULD NOT be picked up:
 
 ```
-this is a bop can you please play this https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ
+can you please play this !Sr https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ
+
 ```
 
 ## Prerequisites
@@ -42,10 +44,11 @@ this is a bop can you please play this https://open.spotify.com/track/4uLU6hMCjM
   set as the `AUTH_SERVER_PORT` in the `config.json` file, by default it is 8000)
 - Run `yarn`
 - Create a `src/config.json` file based on `src/config.json.template` file and fill
-  in the fields
+  in the fields. Everything keeps the quotes except true/falase statements and server port.
   - The playlist ID can be found by right clicking on the playlist ->
-    clicking Share -> Copy Spotify URI and then copying the ID after `spotify:playlist:`
-    eg. `spotify:playlist:{THIS_STRING_IS_THE_ID}`)
+    clicking Share -> Copy/Paste the Spotify playlist URL in the code and then copy the ID 
+    between `https://open.spotify.com/playlist/` and ?        
+      eg. `https://open.spotify.com/playlist/[COPY_THIS_NONSENSE_ONLY]?pm=58g4hj8es4f3g1`)
   - The Spotify client ID and secret are obtained from the application you
     created in the Spotify developer dashboard
 - Run `yarn start` in the root directory of the project
