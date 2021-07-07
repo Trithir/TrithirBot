@@ -1,7 +1,7 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import {getTrackIdFromLink, SPOTIFY_LINK_START} from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 import {getArtistName, getSongName} from './messageUtils';
 
 export default class TwitchService {
@@ -46,9 +46,9 @@ export default class TwitchService {
       return;
     }
 
-    if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX)) {
+    if (COMMAND_PREFIX || COMMAND_PREFIX2 && msg.startsWith(COMMAND_PREFIX || COMMAND_PREFIX2)) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      msg = msg.substring(`${COMMAND_PREFIX} `.length);
+      msg = msg.substring(`${COMMAND_PREFIX || COMMAND_PREFIX2} `.length);
       if (msg.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
       {
         await this.handleSpotifyLink(msg);
