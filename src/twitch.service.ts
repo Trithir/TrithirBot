@@ -1,7 +1,7 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import {getTrackIdFromLink, SPOTIFY_LINK_START} from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 import {getArtistName, getSongName} from './messageUtils';
 
 export default class TwitchService {
@@ -19,9 +19,10 @@ export default class TwitchService {
 
   public async connectToChat() {
 
-    this.twitchClient.on('connected', (_addr: string, _port: number) =>
+    this.twitchClient.on('connected', (_addr: string, _port: number) => {
       console.log(`Connected to ${TWITCH_CHANNEL}'s chat`)
-    );
+      this.twitchClient.say(TWITCH_CHANNEL, "Feed me your commands!")
+    });
 
     this.twitchClient.on(
       'message',
@@ -58,20 +59,34 @@ export default class TwitchService {
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
 
-  if (DROP_PREFIX && msg.startsWith(DROP_PREFIX)) {
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    const fsLibrary  = require('fs')
-    let count = await fsLibrary.readFile('DropCount.txt', ((error: any, txtString: any) => {
-      count = +txtString + 1;
-      this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix " + count + " times!");
-      fsLibrary.writeFile('DropCount.txt', count.toString(), (error: any) => {
+    if (DROP_PREFIX && msg.startsWith(DROP_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      const fsLibrary  = require('fs')
+      let count = await fsLibrary.readFile('DropCount.txt', ((error: any, txtString: any) => {
+        count = +txtString + 1;
+        this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix " + count + " times!");
+        fsLibrary.writeFile('DropCount.txt', count.toString(), (error: any) => {
+          if (error) throw error;
+        })
         if (error) throw error;
-      })
-      if (error) throw error;
-    }))
-    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+      }))
+      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+    }
+
+    if (DROPFIX_PREFIX && msg.startsWith(DROPFIX_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      const fsLibrary  = require('fs')
+      let count = await fsLibrary.readFile('DropCount.txt', ((error: any, txtString: any) => {
+        count = +txtString - 1;
+        this.twitchClient.say(TWITCH_CHANNEL, "Wooops! Trithir hath only droppen the stix " + count + " times!");
+        fsLibrary.writeFile('DropCount.txt', count.toString(), (error: any) => {
+          if (error) throw error;
+        })
+        if (error) throw error;
+      }))
+      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+    }
   }
-}
 
   private async handleSearch(message: string){
     const songName = getSongName(message);
@@ -79,6 +94,7 @@ export default class TwitchService {
     if (songName && artistName){
       await this.spotifyService.searchAndAdd(songName, artistName)
     } else {
+      this.twitchClient.say(TWITCH_CHANNEL, "Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ");
       console.error('Unable to parse songName and artistName from message')
     }
   }
@@ -89,6 +105,7 @@ export default class TwitchService {
     if (trackId) {
       await this.spotifyService.addTrack(trackId);
     } else {
+      this.twitchClient.say(TWITCH_CHANNEL, "Unable to parse track ID from message, make sure you have copied the entire URL.");
       console.error('Unable to parse track ID from message');
     }
   }

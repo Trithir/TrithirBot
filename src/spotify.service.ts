@@ -3,10 +3,22 @@ import { waitForCode } from './auth-server';
 import config from './config.json';
 import SpotifyAuth from './spotify-auth';
 import fs from 'fs';
+import tmi, { ChatUserstate } from 'tmi.js';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 
 export default class SpotifyService {
   private spotifyApi: SpotifyWebApi;
   private spotifyAuth: SpotifyAuth;
+
+  // twitchOptions = {
+  //   channels: [TWITCH_CHANNEL],
+  //   identity: {
+  //     username: BOT_USERNAME,
+  //     password: TWITCH_TOKEN,
+  //   },
+  // };
+
+  // twitchClient = tmi.client(this.twitchOptions);
 
   constructor() {
     this.spotifyApi = new SpotifyWebApi({
@@ -73,7 +85,8 @@ export default class SpotifyService {
       // @ts-ignore
       // TODO the Spotify Web API Node package hasn't published a new release with this yet so it doesn't show up in the @types
       await this.spotifyApi.addToQueue(this.createTrackURI(trackId));
-      console.log(`Added ${songName} to queue`);
+      // this.twitchClient.say(TWITCH_CHANNEL, "Added " + songName + " to the list!");
+      console.log(`Added ${songName} to playlist`);
     } catch (e) {
       e = e as Error;
       if (e.message === 'Not Found') {
@@ -95,7 +108,7 @@ export default class SpotifyService {
     catch (e){
       console.log('Something went wrong!', e);
     }
-}
+  }
 
   private async addToPlaylist(trackId: string | undefined, songName: string | undefined) {
     try {
@@ -108,7 +121,7 @@ export default class SpotifyService {
             config.SPOTIFY_PLAYLIST_ID2,
             [this.createTrackURI(trackId)]
           );
- 
+          // this.twitchClient.say(TWITCH_CHANNEL, "Added " + songName + " to the list!");
           console.log(`Added ${songName} to playlist`);
       } else {
         console.error(
@@ -160,7 +173,7 @@ export default class SpotifyService {
         }
         const accessToken = data.body['access_token'];
         const refreshToken = data.body['refresh_token'];
-        const expireTime = this.calculateExpireTime(data.body['expires_in']);
+        const expireTime = 600000
         this.writeNewSpotifyAuth(accessToken, refreshToken, expireTime);
         this.spotifyApi.setAccessToken(accessToken);
         this.spotifyApi.setRefreshToken(refreshToken);
@@ -179,7 +192,7 @@ export default class SpotifyService {
         }
         const accessToken = data.body['access_token'];
         this.spotifyApi.setAccessToken(accessToken);
-        const expireTime = this.calculateExpireTime(data.body['expires_in']);
+        const expireTime = 600000
         this.writeNewSpotifyAuth(
           accessToken,
           this.spotifyAuth.refreshToken,
