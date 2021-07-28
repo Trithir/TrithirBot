@@ -47,9 +47,21 @@ export default class TwitchService {
       return;
     }
 
-    if (COMMAND_PREFIX || COMMAND_PREFIX2 && msg.startsWith(COMMAND_PREFIX || COMMAND_PREFIX2)) {
+    if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX )) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      msg = msg.substring(`${COMMAND_PREFIX || COMMAND_PREFIX2} `.length);
+      msg = msg.substring(`${COMMAND_PREFIX } `.length);
+      if (msg.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
+      {
+        await this.handleSpotifyLink(msg);
+      } else {
+        await this.handleSearch(msg);
+      }
+      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+    }
+
+    if (COMMAND_PREFIX2 && msg.startsWith(COMMAND_PREFIX2)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      msg = msg.substring(`${COMMAND_PREFIX2} `.length);
       if (msg.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
       {
         await this.handleSpotifyLink(msg);
