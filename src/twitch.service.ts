@@ -19,10 +19,8 @@ export default class TwitchService {
 
   public async connectToChat() {
 
-    this.twitchClient.on('connected', (_addr: string, _port: number) => {
-      console.log(`Connected to ${TWITCH_CHANNEL}'s chat`)
-      this.twitchClient.say(TWITCH_CHANNEL, "Feed me your commands!")
-    });
+    this.twitchClient.on('connected', (_addr: string, _port: number) => console.log(`Connected to ${TWITCH_CHANNEL}'s chat`));
+      // this.twitchClient.say(TWITCH_CHANNEL, "Feed me your commands!")
 
     this.twitchClient.on(
       'message',
@@ -82,6 +80,7 @@ export default class TwitchService {
         })
         if (error) throw error;
       }))
+      console.log('Butter Fingers!')
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
 
@@ -96,6 +95,7 @@ export default class TwitchService {
         })
         if (error) throw error;
       }))
+      console.log('They trying to mess up my stick count!')
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
 
@@ -119,7 +119,8 @@ export default class TwitchService {
     const songName = getSongName(message);
     const artistName = getArtistName(message);
     if (songName && artistName){
-      await this.spotifyService.searchAndAdd(songName, artistName)
+      await this.spotifyService.searchAndAdd(songName, artistName, (s:string) => {this.twitchClient.say(TWITCH_CHANNEL, s);}
+    )
     } else {
       this.twitchClient.say(TWITCH_CHANNEL, "Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ");
       console.error('Unable to parse songName and artistName from message')
@@ -128,11 +129,14 @@ export default class TwitchService {
 
 
   private async handleSpotifyLink(message: string) {
+
     const trackId = getTrackIdFromLink(message);
+    console.log(trackId)
+
     if (trackId) {
+      console.log(trackId)
       await this.spotifyService.addTrack(trackId);
     } else {
-      this.twitchClient.say(TWITCH_CHANNEL, "Unable to parse track ID from message, make sure you have copied the entire URL.");
       console.error('Unable to parse track ID from message');
     }
   }

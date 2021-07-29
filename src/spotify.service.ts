@@ -3,8 +3,8 @@ import { waitForCode } from './auth-server';
 import config from './config.json';
 import SpotifyAuth from './spotify-auth';
 import fs from 'fs';
-import tmi, { ChatUserstate } from 'tmi.js';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
+// import tmi, { ChatUserstate } from 'tmi.js';
+// import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 
 export default class SpotifyService {
   private spotifyApi: SpotifyWebApi;
@@ -99,14 +99,16 @@ export default class SpotifyService {
     }
   }
 
-  public async searchAndAdd(songName: string, artistName: string) {
+  public async searchAndAdd(songName: string, artistName: string, say: any) {
     try {
     const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
       await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name)
       console.log(searchInfo.body.tracks?.items[0].id)
+      say(songName + ' - added to playlist!')
       }
     catch (e){
       console.log('Something went wrong!', e);
+      say('Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ')
     }
   }
 
@@ -173,7 +175,7 @@ export default class SpotifyService {
         }
         const accessToken = data.body['access_token'];
         const refreshToken = data.body['refresh_token'];
-        const expireTime = 600000
+        const expireTime = this.calculateExpireTime(data.body['expires_in']);
         this.writeNewSpotifyAuth(accessToken, refreshToken, expireTime);
         this.spotifyApi.setAccessToken(accessToken);
         this.spotifyApi.setRefreshToken(refreshToken);
@@ -192,7 +194,7 @@ export default class SpotifyService {
         }
         const accessToken = data.body['access_token'];
         this.spotifyApi.setAccessToken(accessToken);
-        const expireTime = 600000
+        const expireTime = this.calculateExpireTime(data.body['expires_in']);
         this.writeNewSpotifyAuth(
           accessToken,
           this.spotifyAuth.refreshToken,
