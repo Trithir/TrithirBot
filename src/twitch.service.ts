@@ -1,7 +1,7 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import {getTrackIdFromLink, SPOTIFY_LINK_START} from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 import {getArtistName, getSongName} from './messageUtils';
 
 export default class TwitchService {
@@ -96,6 +96,21 @@ export default class TwitchService {
         })
         if (error) throw error;
       }))
+      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+    }
+
+    if (BURP_PREFIX && msg.startsWith(BURP_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      const fsLibrary  = require('fs')
+      let count = await fsLibrary.readFile('BurpCount.txt', ((error: any, txtString: any) => {
+        count = +txtString + 1;
+        this.twitchClient.say(TWITCH_CHANNEL, "DID YOU HEAR THAT?! " + count + " belches and counting!!");
+        fsLibrary.writeFile('BurpCount.txt', count.toString(), (error: any) => {
+          if (error) throw error;
+        })
+        if (error) throw error;
+      }))
+      console.log('BEEEEEEEEEEEEEEEEEEEEEEEEEELCH');
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
   }
