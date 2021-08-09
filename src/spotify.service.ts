@@ -56,13 +56,14 @@ export default class SpotifyService {
     }
   }
 
-  public async addTrack(trackId: string) {
+  public async addTrack(trackId: string, say: any) {
     try {
       const addSong = async () => {
         console.log(`Attempting to add ${trackId}`);
         const songInfo = await this.spotifyApi.getTrack(trackId);
         if (config.ADD_TO_QUEUE) {
           await this.addToQueue(trackId, songInfo?.body.name);
+          say(trackId + ' - added to playlist!')
         }
         if (config.ADD_TO_PLAYLIST) {
           await this.addToPlaylist(trackId, songInfo?.body.name);

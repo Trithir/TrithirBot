@@ -135,7 +135,7 @@ export default class TwitchService {
 
     if (trackId) {
       console.log(trackId)
-      await this.spotifyService.addTrack(trackId);
+      await this.spotifyService.addTrack(trackId, (s:string) => {this.twitchClient.say(TWITCH_CHANNEL, s);});
     } else {
       console.error('Unable to parse track ID from message');
     }
