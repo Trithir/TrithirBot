@@ -3,22 +3,10 @@ import { waitForCode } from './auth-server';
 import config from './config.json';
 import SpotifyAuth from './spotify-auth';
 import fs from 'fs';
-// import tmi, { ChatUserstate } from 'tmi.js';
-// import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 
 export default class SpotifyService {
   private spotifyApi: SpotifyWebApi;
   private spotifyAuth: SpotifyAuth;
-
-  // twitchOptions = {
-  //   channels: [TWITCH_CHANNEL],
-  //   identity: {
-  //     username: BOT_USERNAME,
-  //     password: TWITCH_TOKEN,
-  //   },
-  // };
-
-  // twitchClient = tmi.client(this.twitchOptions);
 
   constructor() {
     this.spotifyApi = new SpotifyWebApi({
@@ -86,7 +74,6 @@ export default class SpotifyService {
       // @ts-ignore
       // TODO the Spotify Web API Node package hasn't published a new release with this yet so it doesn't show up in the @types
       await this.spotifyApi.addToQueue(this.createTrackURI(trackId));
-      // this.twitchClient.say(TWITCH_CHANNEL, "Added " + songName + " to the list!");
       console.log(`Added ${songName} to playlist`);
     } catch (e) {
       e = e as Error;
@@ -102,11 +89,18 @@ export default class SpotifyService {
 
   public async searchAndAdd(songName: string, artistName: string, say: any) {
     try {
-    const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
+      const searchAndAddWrap = async () => { 
+      const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
       await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name)
       console.log(searchInfo.body.tracks?.items[0].id)
       say(songName + ' - added to playlist!')
       }
+      if (this.hasTokenExpired()) {
+        console.log('Spotify token expired, refreshing...');
+        await this.refreshToken(searchAndAddWrap);
+      } else {
+        await searchAndAddWrap();
+      }}
     catch (e){
       console.log('Something went wrong!', e);
       say('Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ')
