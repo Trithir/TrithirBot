@@ -91,10 +91,11 @@ export default class SpotifyService {
     try {
       const searchAndAddWrap = async () => { 
       const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
-      await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name)
-      console.log(searchInfo.body.tracks?.items[0].id)
-      say(songName + ' - added to playlist!')
-      }
+      if (searchInfo.body.tracks?.items.length) {
+        await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name)
+        console.log(searchInfo.body.tracks?.items[0].id)
+        say(songName + ' - added to playlist!')
+      }}
       if (this.hasTokenExpired()) {
         console.log('Spotify token expired, refreshing...');
         await this.refreshToken(searchAndAddWrap);
