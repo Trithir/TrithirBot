@@ -3,3 +3,5 @@ spotify-auth-store.json
 build/
 .idea/
 node_modules/
+BurpCount.txt
+ExpressText

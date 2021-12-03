@@ -51,10 +51,9 @@ export default class SpotifyService {
         const songInfo = await this.spotifyApi.getTrack(trackId);
         if (config.ADD_TO_QUEUE) {
           await this.addToQueue(trackId, songInfo?.body.name);
-          say(trackId + ' - added to playlist!')
         }
         if (config.ADD_TO_PLAYLIST) {
-          await this.addToPlaylist(trackId, songInfo?.body.name);
+          await this.addToPlaylist(trackId, songInfo?.body.name, say);
         }
       };
 
@@ -74,7 +73,7 @@ export default class SpotifyService {
       // @ts-ignore
       // TODO the Spotify Web API Node package hasn't published a new release with this yet so it doesn't show up in the @types
       await this.spotifyApi.addToQueue(this.createTrackURI(trackId));
-      console.log(`Added ${songName} to playlist`);
+      console.log(`Added ${songName} to fartlist`);
     } catch (e) {
       e = e as Error;
       if (e.message === 'Not Found') {
@@ -92,9 +91,9 @@ export default class SpotifyService {
       const searchAndAddWrap = async () => { 
       const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
       if (searchInfo.body.tracks?.items.length) {
-        await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name)
+        await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name, '3')
         console.log(searchInfo.body.tracks?.items[0].id)
-        say(songName + ' - added to playlist!')
+        say('Added - ' + songName + '!')
       }}
       if (this.hasTokenExpired()) {
         console.log('Spotify token expired, refreshing...');
@@ -108,19 +107,21 @@ export default class SpotifyService {
     }
   }
 
-  private async addToPlaylist(trackId: string | undefined, songName: string | undefined) {
+  private async addToPlaylist(trackId: string | undefined, songName: string | undefined, say: any) {
     try {
       if (config.SPOTIFY_PLAYLIST_ID && config.SPOTIFY_PLAYLIST_ID2) {
           await this.spotifyApi.addTracksToPlaylist(
             config.SPOTIFY_PLAYLIST_ID,
             [this.createTrackURI(trackId)]
           );         
-           await this.spotifyApi.addTracksToPlaylist(
+          await this.spotifyApi.addTracksToPlaylist(
             config.SPOTIFY_PLAYLIST_ID2,
             [this.createTrackURI(trackId)]
           );
-          // this.twitchClient.say(TWITCH_CHANNEL, "Added " + songName + " to the list!");
-          console.log(`Added ${songName} to playlist`);
+          console.log(`Added ${songName} to thislist`);
+          say(`Added - ${songName}!`)
+          
+          
       } else {
         console.error(
           'Error: Cannot add to playlist - Please provide a playlist ID in the config file'
