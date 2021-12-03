@@ -74,8 +74,7 @@ export default class SpotifyService {
       // TODO the Spotify Web API Node package hasn't published a new release with this yet so it doesn't show up in the @types
       await this.spotifyApi.addToQueue(this.createTrackURI(trackId));
       console.log(`Added ${songName} to fartlist`);
-    } catch (e) {
-      e = e as Error;
+    } catch (e: any) {
       if (e.message === 'Not Found') {
         console.error(
           'Unable to add song to queue - Song may not exist or you may not have the Spotify client open and active'
