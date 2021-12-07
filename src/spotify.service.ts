@@ -74,7 +74,7 @@ export default class SpotifyService {
       // TODO the Spotify Web API Node package hasn't published a new release with this yet so it doesn't show up in the @types
       await this.spotifyApi.addToQueue(this.createTrackURI(trackId));
       console.log(`Added ${songName} to fartlist`);
-    } catch (e: any) {
+    } catch (e) {
       if (e.message === 'Not Found') {
         console.error(
           'Unable to add song to queue - Song may not exist or you may not have the Spotify client open and active'
@@ -90,9 +90,8 @@ export default class SpotifyService {
       const searchAndAddWrap = async () => { 
       const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
       if (searchInfo.body.tracks?.items.length) {
-        await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name, '3')
+        await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name, () => say('Added ' + songName + '!'))
         console.log(searchInfo.body.tracks?.items[0].id)
-        say('Added - ' + songName + '!')
       }}
       if (this.hasTokenExpired()) {
         console.log('Spotify token expired, refreshing...');
@@ -118,9 +117,7 @@ export default class SpotifyService {
             [this.createTrackURI(trackId)]
           );
           console.log(`Added ${songName} to thislist`);
-          say(`Added - ${songName}!`)
-          
-          
+          say(`I added ${songName} for you!`)
       } else {
         console.error(
           'Error: Cannot add to playlist - Please provide a playlist ID in the config file'
