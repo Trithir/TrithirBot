@@ -1,5 +1,5 @@
 import SpotifyService from './spotify.service';
-import TwitchService from './twitch.service';
+import {TwitchService} from './twitch.service';
 
 const runApp = async () => {
   const spotifyService = new SpotifyService();

@@ -1,0 +1,50 @@
+// To test code, first run //
+
+      dotnet run 
+
+// Then go here to Test //
+
+  https://localhost:5001/
+
+// If you want to create a self-signed certificate go here //
+
+https://docs.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide#create-a-self-signed-certificate
+
+
+
+// 2 steps to build exe //
+
+                  //Step 1//
+
+dotnet restore "./My-Stream-Bot.csproj" --runtime win-x64
+
+                  //Step 2//
+
+dotnet publish "My-Stream-Bot.csproj" -c Release -o ./publish --no-restore --runtime win-x64 --self-contained true /p:PublishTrimmed=true /p:PublishSingleFile=true    
+
+// Run My-Stream-Bot.exe from publish folder to use your app! //
+
+
+      // github for asp-net-core-react-typescript //
+      
+https://github.com/megasoft78/asp-net-core-react-typescript-webview2
+
+
+        / Setup tutorial I followed //
+
+https://itnext.io/write-a-desktop-app-with-react-typescript-asp-net-core-and-webview2-3a15daef4d64
+
+
+//main display//
+DropCount
+BurpCount
+Song requested - User that requested
+highlight currently playing Song
+show chat for 10 seconds
+visualize drum hits (or keyboard. or guitar?)
+
+//add command options//
+add command (!whatever)
+text
+new file (for counting, logging, keeping notes)
+

@@ -4,7 +4,13 @@ import SpotifyService from './spotify.service';
 import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2 } from './config.json';
 import {getArtistName, getSongName} from './messageUtils';
 
-export default class TwitchService {
+export function DisplayBurpCount(): any {
+  const fs  = require('fs')
+  let count = fs.read('../../BurpCount.txt')
+  return count
+}
+
+export class TwitchService {
   twitchOptions = {
     channels: [TWITCH_CHANNEL],
     identity: {
