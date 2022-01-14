@@ -75,12 +75,12 @@ export default class SpotifyService {
       await this.spotifyApi.addToQueue(this.createTrackURI(trackId));
       console.log(`Added ${songName} to fartlist`);
     } catch (e) {
-      if (e.message === 'Not Found') {
+      if (e === 'Not Found') {
         console.error(
           'Unable to add song to queue - Song may not exist or you may not have the Spotify client open and active'
         );
       } else {
-        console.error(`Error: Unable to add song to queue - ${e.message}`);
+        console.error(`Error: Unable to add song to queue - ${e}`);
       }
     }
   }
