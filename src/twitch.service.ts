@@ -43,7 +43,7 @@ export default class TwitchService {
     if (self) {
       return;
     }
-
+    console.log(msg);
     if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX)) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       let request = this.RemovePrefix(msg, COMMAND_PREFIX)
