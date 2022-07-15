@@ -85,21 +85,51 @@ export default class SpotifyService {
     }
   }
 
+  public async getCurrentSong(say: any) {
+    try {
+      const nowPlaying = async () => {
+        this.spotifyApi.getMyCurrentPlayingTrack()
+          .then(function (data) {
+            if (data != null && data.body != null && data.body.item != null && data.body.item.name != null) {
+              console.log('Now playing: ' + data.body.item.name);
+              say('Currently playing: ' + data.body.item.name);
+            } else {
+              console.log('Song data is null');
+              say('Had a problem finding current song')
+            }
+          }, function (err) {
+            console.log('Something went wrong!', err);
+          });
+      };
+      if (this.hasTokenExpired()) {
+        console.log('Spotify token expired, refreshing...');
+        await this.refreshToken(nowPlaying);
+      } else {
+        await nowPlaying();
+      }
+    } catch (e) {
+      console.log('Problem finding current song', e);
+      say('Had a problem finding current song')
+    }
+  }
+
   public async searchAndAdd(songName: string, artistName: string, say: any) {
     try {
-      const searchAndAddWrap = async () => { 
-      const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
-      if (searchInfo.body.tracks?.items.length) {
-        await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name, () => say('Added ' + songName + '!'))
-        console.log(searchInfo.body.tracks?.items[0].id)
-      }}
+      const searchAndAddWrap = async () => {
+        const searchInfo = await this.spotifyApi.searchTracks(`track:${songName} artist:${artistName}`)
+        if (searchInfo.body.tracks?.items.length) {
+          await this.addToPlaylist(searchInfo.body.tracks?.items[0].id, searchInfo.body.tracks?.items[0].name, () => say('Added ' + songName + '!'))
+          console.log(searchInfo.body.tracks?.items[0].id)
+        }
+      }
       if (this.hasTokenExpired()) {
         console.log('Spotify token expired, refreshing...');
         await this.refreshToken(searchAndAddWrap);
       } else {
         await searchAndAddWrap();
-      }}
-    catch (e){
+      }
+    }
+    catch (e) {
       console.log('Something went wrong!', e);
       say('Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ')
     }
@@ -108,16 +138,16 @@ export default class SpotifyService {
   private async addToPlaylist(trackId: string | undefined, songName: string | undefined, say: any) {
     try {
       if (config.SPOTIFY_PLAYLIST_ID && config.SPOTIFY_PLAYLIST_ID2) {
-          await this.spotifyApi.addTracksToPlaylist(
-            config.SPOTIFY_PLAYLIST_ID,
-            [this.createTrackURI(trackId)]
-          );         
-          await this.spotifyApi.addTracksToPlaylist(
-            config.SPOTIFY_PLAYLIST_ID2,
-            [this.createTrackURI(trackId)]
-          );
-          console.log(`Added ${songName} to thislist`);
-          say(`I added ${songName} for you!`)
+        await this.spotifyApi.addTracksToPlaylist(
+          config.SPOTIFY_PLAYLIST_ID,
+          [this.createTrackURI(trackId)]
+        );
+        await this.spotifyApi.addTracksToPlaylist(
+          config.SPOTIFY_PLAYLIST_ID2,
+          [this.createTrackURI(trackId)]
+        );
+        console.log(`Added ${songName} to thislist`);
+        say(`I added ${songName} for you!`)
       } else {
         console.error(
           'Error: Cannot add to playlist - Please provide a playlist ID in the config file'
@@ -151,30 +181,44 @@ export default class SpotifyService {
       'playlist-read-private',
       'playlist-modify-public',
       'playlist-modify-private',
+      'user-read-currently-playing',
     ];
 
     return this.spotifyApi.createAuthorizeURL(scopes, '');
   }
 
   private async performNewAuthorization(onAuth: Function) {
-    const authUrl = this.getAuthorizationUrl();
-    console.log('Click the following link and give this app permissions');
-    console.log(authUrl);
-    waitForCode((code: string) => {
-      this.spotifyApi.authorizationCodeGrant(code, async (error, data) => {
-        if (error) {
-          console.error(error);
-          process.exit(-1);
-        }
-        const accessToken = data.body['access_token'];
-        const refreshToken = data.body['refresh_token'];
-        const expireTime = this.calculateExpireTime(data.body['expires_in']);
-        this.writeNewSpotifyAuth(accessToken, refreshToken, expireTime);
-        this.spotifyApi.setAccessToken(accessToken);
-        this.spotifyApi.setRefreshToken(refreshToken);
-        await onAuth();
+    try {
+      const authUrl = this.getAuthorizationUrl();
+      console.log('Click the following link and give this app permissions');
+      console.log(authUrl);
+      waitForCode((code: string) => {
+        this.spotifyApi.authorizationCodeGrant(code, async (error, data) => {
+          console.log("BEFORE THE TRY ERROR")
+          try {
+            if (error) {
+              console.log("BLARDY --- " + data)
+              console.error(error);
+              process.exit(-1);
+            }
+            console.log("AFTER THE TRY ERROR IF")
+            const accessToken = data.body['access_token'];
+            const refreshToken = data.body['refresh_token'];
+            const expireTime = this.calculateExpireTime(data.body['expires_in']);
+            this.writeNewSpotifyAuth(accessToken, refreshToken, expireTime);
+            this.spotifyApi.setAccessToken(accessToken);
+            this.spotifyApi.setRefreshToken(refreshToken);
+            console.log("BEFORE onAuth INSIDE TRY/CATCH")
+            await onAuth();
+            console.log("AFTER onAuth INSIDE TRY/CATCH")
+          } catch (e) {
+            console.error(`Error: Unable to dothethingwewantittodo - ${e}`);
+          }
+        });
       });
-    });
+    } catch (e) {
+      console.error(`Error: Unable to perfomNewAuthorization - ${e}`);
+    }
   }
 
   private async refreshToken(onAuth: Function) {

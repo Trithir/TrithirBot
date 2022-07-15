@@ -2,11 +2,15 @@ import SpotifyService from './spotify.service';
 import TwitchService from './twitch.service';
 
 const runApp = async () => {
-  const spotifyService = new SpotifyService();
-  await spotifyService.authorize(async () => {
-    const twitchService = new TwitchService(spotifyService);
-    await twitchService.connectToChat();
-  });
+  try {
+    const spotifyService = new SpotifyService();
+    await spotifyService.authorize(async () => {
+      try {
+        const twitchService = new TwitchService(spotifyService);
+        await twitchService.connectToChat();
+      } catch { console.error("Problems connecting to twitch in runApp") }
+    });
+  } catch { console.error("runApp Failed!") }
 };
 
 runApp().then();
