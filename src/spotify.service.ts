@@ -158,6 +158,85 @@ export default class SpotifyService {
     }
   }
 
+  private async GeneratePositionListFromPlaylistLength(say: any) {
+    let playlistId = config.SPOTIFY_PLAYLIST_ID2
+    console.log("inside getnumberoftracksinplaylist")
+    try {
+      const GetNumberOfTracksInPlaylistWrap = async () => {
+        return this.spotifyApi.getPlaylistTracks(playlistId, {
+          offset: 0,
+          limit: 55,
+          fields: 'items'
+        })
+          .then(
+            (data) => {
+              console.log('Playlist Length: ', data.body.items.length);
+              if (data && data.body && data.body.items && data.body.items.length) {
+                console.log('Inside If Playlist Length: ', data.body.items.length);
+                return this.GeneratePositionList(data.body.items.length);
+              }
+            },
+            function (err) {
+              console.log('Something went wrong!', err);
+            }
+          );
+      }
+      if (this.hasTokenExpired()) {
+        console.log('Spotify token expired, refreshing...');
+        return await this.refreshToken(GetNumberOfTracksInPlaylistWrap);
+      } else {
+        return await GetNumberOfTracksInPlaylistWrap();
+      }
+    }
+    catch (e) {
+      console.error('Something went wrong!', e);
+      say('Unable to get song list.')
+      return 0;
+    }
+  }
+
+  private GeneratePositionList(length: number | undefined) {
+    let array: any = []
+    console.log("Length inside GeneratePositionList: ", length)
+    console.log(typeof length)
+    if (typeof length == "number") {
+      for (let i = 0; i < length; i++) {
+        array.push(i)
+      }
+      console.log("array right after forLoop: ", array)
+      return array;
+    } else {
+      console.log("else array return" + array)
+      return array;
+    }
+  }
+
+  private async GetSnapshotID() {
+    return this.spotifyApi.getPlaylist(config.SPOTIFY_PLAYLIST_ID2)
+      .then(function (data) {
+        if (data && data.body && data.body.snapshot_id) {
+          return data.body.snapshot_id
+        } else return ""
+      }, function (err) {
+        console.log('Something went wrong!', err);
+        return "";
+      });
+  }
+
+  public async ClearPlaylist(say: any) {
+    let positions: any = await this.GeneratePositionListFromPlaylistLength(say)
+    let snapshot_id: string = await this.GetSnapshotID()
+    let playlistId = config.SPOTIFY_PLAYLIST_ID2
+    console.log("clearplaylist playlistlength: ", positions)
+    // Remove tracks from a playlist
+    this.spotifyApi.removeTracksFromPlaylistByPosition(playlistId, positions, snapshot_id)
+      .then(function (data) {
+        console.log('Tracks removed from playlist!');
+      }, function (err) {
+        console.log('Something went wrong!', err);
+      });
+  }
+
   private createTrackURI = (trackId: string | undefined): string =>
     `spotify:track:${trackId}`;
 

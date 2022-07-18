@@ -1,7 +1,7 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import { getTrackIdFromLink, SPOTIFY_LINK_START } from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX, CLEAR_PLAYLIST_PREFIX } from './config.json';
 import { getArtistName, getSongName } from './messageUtils';
 
 export default class TwitchService {
@@ -14,6 +14,7 @@ export default class TwitchService {
   };
 
   twitchClient = tmi.client(this.twitchOptions);
+  say = (s: string) => { this.twitchClient.say(TWITCH_CHANNEL, s); }
 
   constructor(private spotifyService: SpotifyService) { }
 
@@ -68,9 +69,16 @@ export default class TwitchService {
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
     }
 
+    else if (CLEAR_PLAYLIST_PREFIX && msg.startsWith(CLEAR_PLAYLIST_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      let request = this.RemovePrefix(msg, CLEAR_PLAYLIST_PREFIX)
+      this.spotifyService.ClearPlaylist(this.say)
+      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+    }
+
     else if (NOWPLAYING_PREFIX && msg.startsWith(NOWPLAYING_PREFIX)) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.spotifyService.getCurrentSong((s: string) => { this.twitchClient.say(TWITCH_CHANNEL, s); })
+      this.spotifyService.getCurrentSong(this.say)
       console.log('<<<<<<<<<<<<<<PUT YOUR HANDS UPP!<<<<<<<<<<<<<<<<');
     }
 
@@ -131,7 +139,7 @@ export default class TwitchService {
     const songName = getSongName(message);
     const artistName = getArtistName(message);
     if (songName && artistName) {
-      await this.spotifyService.searchAndAdd(songName, artistName, (s: string) => { this.twitchClient.say(TWITCH_CHANNEL, s); }
+      await this.spotifyService.searchAndAdd(songName, artistName, this.say
       )
     } else {
       this.twitchClient.say(TWITCH_CHANNEL, "Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ");
@@ -147,7 +155,7 @@ export default class TwitchService {
 
     if (trackId) {
       console.log(trackId)
-      await this.spotifyService.addTrack(trackId, (s: string) => { this.twitchClient.say(TWITCH_CHANNEL, s); });
+      await this.spotifyService.addTrack(trackId, this.say);
     } else {
       console.error('Unable to parse track ID from message');
     }
