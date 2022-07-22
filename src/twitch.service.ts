@@ -1,7 +1,7 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import { getTrackIdFromLink, SPOTIFY_LINK_START } from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX, CLEAR_PLAYLIST_PREFIX } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX, CLEAR_PLAYLIST_PREFIX, HELP_PREFIX, DISCORD_PREFIX, LURK_PREFIX } from './config.json';
 import { getArtistName, getSongName } from './messageUtils';
 
 export default class TwitchService {
@@ -20,7 +20,6 @@ export default class TwitchService {
 
   public async connectToChat() {
     this.twitchClient.on('connected', (_addr: string, _port: number) => console.log(`Connected to ${TWITCH_CHANNEL}'s chat`));
-    // this.twitchClient.say(TWITCH_CHANNEL, "Feed me your commands!")
     this.twitchClient.on(
       'message',
       async (
@@ -29,10 +28,11 @@ export default class TwitchService {
         msg: string,
         self: boolean
       ) => await this.handleMessage(target, userState, msg, self)
-    );
-    try {
-      await this.twitchClient.connect();
-    } catch { console.error("this.twitchClient.Connect() did not do the thing.") }
+      );
+      try {
+        await this.twitchClient.connect();
+      } catch { console.error("this.twitchClient.Connect() did not do the thing.") }
+      // this.twitchClient.say(TWITCH_CHANNEL, "Feed me your commands!")
   }
 
   private async handleMessage(
@@ -45,6 +45,7 @@ export default class TwitchService {
       return;
     }
     console.log(msg);
+    console.log(_userState);
     if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX)) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
       let request = this.RemovePrefix(msg, COMMAND_PREFIX)
@@ -74,6 +75,24 @@ export default class TwitchService {
       let request = this.RemovePrefix(msg, CLEAR_PLAYLIST_PREFIX)
       this.spotifyService.ClearPlaylist(this.say)
       console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+    }
+
+    else if (HELP_PREFIX && msg.startsWith(HELP_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      this.twitchClient.say(TWITCH_CHANNEL, "Try one of these: !song, !stix, !oops, !burp, !lurk, !discord !gimme/gimmie artist - song, !gimme/gimmie spotify.link");
+      console.log('<<<<<<<<<<<<<<Someone Wanted Help<<<<<<<<<<<<<<<<');
+    }
+
+    else if (LURK_PREFIX && msg.startsWith(LURK_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      this.twitchClient.say(TWITCH_CHANNEL, _userState.username + " has slunk to the shadows!");
+      console.log('<<<<<<<<<<<<<<Lurkerer man!<<<<<<<<<<<<<<<<');
+    }
+
+    else if (DISCORD_PREFIX && msg.startsWith(DISCORD_PREFIX)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      this.twitchClient.say(TWITCH_CHANNEL, "Join the discordussion!  https://discord.gg/zPTeK674fS");
+      console.log('<<<<<<<<<<<<<<Discord<<<<<<<<<<<<<<<<');
     }
 
     else if (NOWPLAYING_PREFIX && msg.startsWith(NOWPLAYING_PREFIX)) {
