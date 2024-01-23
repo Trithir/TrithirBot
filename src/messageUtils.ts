@@ -43,7 +43,7 @@ export const getSongName = (message: string): string | null => {
   try {
     var startOfName = 0;
     if (message.indexOf(' - ') != -1){
-      startOfName = message.indexOf(' - ');
+      startOfName = message.indexOf(' - ' ) + 3;
     } else startOfName = message.indexOf('-') + 1;
     const endOfName = message.length;
     if (startOfName > 0 && endOfName > 0) {
