@@ -1,7 +1,7 @@
 import tmi, { ChatUserstate } from 'tmi.js';
 import { getTrackIdFromLink, SPOTIFY_LINK_START } from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX, CLEAR_PLAYLIST_PREFIX, HELP_PREFIX, DISCORD_PREFIX, LURK_PREFIX } from './config.json';
+import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX, CLEAR_PLAYLIST_PREFIX, HELP_PREFIX, DISCORD_PREFIX, LURK_PREFIX, COSMIC_LINKS } from './config.json';
 import { getArtistName, getSongName } from './messageUtils';
 
 export default class TwitchService {
@@ -31,7 +31,7 @@ export default class TwitchService {
       );
       try {
         await this.twitchClient.connect();
-      } catch { console.error("this.twitchClient.Connect() did not do the thing.") }
+      } catch { console.error("this.twitchClient.Connect() did not do the thing.") } //https://twitchapps.com/tmi/ To reset bot secret
       // this.twitchClient.say(TWITCH_CHANNEL, "Feed me your commands!")
   }
 
@@ -47,7 +47,7 @@ export default class TwitchService {
     console.log(msg);
     console.log(_userState);
     if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      console.log('>>>>>>>>>>COMMAND_PREFIX>>>>>>>>>');
       let request = this.RemovePrefix(msg, COMMAND_PREFIX)
       if (request.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
       {
@@ -59,7 +59,7 @@ export default class TwitchService {
     }
 
     else if (COMMAND_PREFIX2 && msg.startsWith(COMMAND_PREFIX2)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      console.log('>>>>>>>>COMMAND_PREFIX2>>>>>>>>>>');
       let request = this.RemovePrefix(msg, COMMAND_PREFIX2)
       if (request.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
       {
@@ -79,7 +79,7 @@ export default class TwitchService {
 
     else if (HELP_PREFIX && msg.startsWith(HELP_PREFIX)) {
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.twitchClient.say(TWITCH_CHANNEL, "Try one of these: !song, !stix, !oops, !burp, !lurk, !discord !gimme/gimmie artist - song, !gimme/gimmie spotify.link");
+      this.twitchClient.say(TWITCH_CHANNEL, "Try one of these: !cc !song, !drop, !oops, !burp, !lurk, !discord !gimme artist - song, !gimme spotify.link");
       console.log('<<<<<<<<<<<<<<Someone Wanted Help<<<<<<<<<<<<<<<<');
     }
 
@@ -151,6 +151,12 @@ export default class TwitchService {
       let user = this.RemovePrefix(msg, SHOUT_PREFIX)
       this.twitchClient.say(TWITCH_CHANNEL, "A friend of Trithir deserves a follow! >>> https://www.twitch.tv/" + user);
       console.log('<<<<<<<<<<<<<<PUT YOUR HANDS UPP!<<<<<<<<<<<<<<<<');
+    }
+    
+    else if (COSMIC_LINKS && msg.startsWith(COSMIC_LINKS)) {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+      this.twitchClient.say(TWITCH_CHANNEL, "Check out the band! Spotify: https://open.spotify.com/artist/416Z5tNawyaQwz8K9s6t7h?si=-UJHjfKAQeWUg0FLxmnmnQ BandCamp: https://cosmicconjurers.bandcamp.com/ YouTube: https://www.youtube.com/@CosmicConjurers");
+      console.log('<<<<<<<<<<<<<<COSMIC FOLLOWERS!<<<<<<<<<<<<<<<<');
     }
   }
 
