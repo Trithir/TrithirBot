@@ -1,6 +1,12 @@
 import express from 'express';
 import { AUTH_SERVER_PORT } from './config.json';
 
+type SpotifyAuthCallback = {
+  code?: string;
+  error?: string;
+  state?: string;
+};
+
 export const waitForCode = (onCodeReceived: Function) => {
   const app = express();
   const port = AUTH_SERVER_PORT;
@@ -10,8 +16,21 @@ export const waitForCode = (onCodeReceived: Function) => {
   });
 
   app.get('/spotifyAuth', (req, res) => {
-    res.send('Authorization received, you can close this window now.');
+    const authResult: SpotifyAuthCallback = {
+      code:
+        typeof req.query.code === 'string' ? req.query.code : undefined,
+      error:
+        typeof req.query.error === 'string' ? req.query.error : undefined,
+      state:
+        typeof req.query.state === 'string' ? req.query.state : undefined,
+    };
+
+    const responseMessage = authResult.error
+      ? `Spotify authorization failed: ${authResult.error}. You can close this window now.`
+      : 'Authorization received, you can close this window now.';
+
+    res.send(responseMessage);
     server.close();
-    onCodeReceived(req.query.code);
+    onCodeReceived(authResult);
   });
 };

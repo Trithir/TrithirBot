@@ -7,12 +7,15 @@ import fs from 'fs';
 export default class SpotifyService {
   private spotifyApi: SpotifyWebApi;
   private spotifyAuth: SpotifyAuth;
+  private readonly spotifyRedirectUri: string;
+  private pendingAuthState: string | null = null;
 
   constructor() {
+    this.spotifyRedirectUri = `http://127.0.0.1:${config.AUTH_SERVER_PORT}/spotifyAuth`;
     this.spotifyApi = new SpotifyWebApi({
       clientId: config.SPOTIFY_CLIENT_ID,
       clientSecret: config.SPOTIFY_CLIENT_SECRET,
-      redirectUri: `http://localhost:${config.AUTH_SERVER_PORT}/spotifyAuth`,
+      redirectUri: this.spotifyRedirectUri,
     });
 
     if (!fs.existsSync('./spotify-auth-store.json')) {
@@ -263,40 +266,58 @@ export default class SpotifyService {
       'user-read-currently-playing',
     ];
 
-    return this.spotifyApi.createAuthorizeURL(scopes, '');
+    this.pendingAuthState = this.generateAuthState();
+    return this.spotifyApi.createAuthorizeURL(scopes, this.pendingAuthState);
   }
 
   private async performNewAuthorization(onAuth: Function) {
     try {
       const authUrl = this.getAuthorizationUrl();
       console.log('Click the following link and give this app permissions');
+      console.log(
+        `Spotify redirect URI must be allowlisted exactly as ${this.spotifyRedirectUri}`
+      );
       console.log(authUrl);
-      waitForCode((code: string) => {
-        this.spotifyApi.authorizationCodeGrant(code, async (error, data) => {
-          console.log("BEFORE THE TRY ERROR")
+      waitForCode((authResult: { code?: string; error?: string; state?: string }) => {
+        if (authResult.error) {
+          console.error(
+            `Spotify authorization failed before code exchange: ${authResult.error}`
+          );
+          process.exit(-1);
+        }
+
+        if (!authResult.code) {
+          console.error('Spotify authorization callback did not include a code');
+          process.exit(-1);
+        }
+
+        if (!authResult.state || authResult.state !== this.pendingAuthState) {
+          console.error(
+            'Spotify authorization state was missing or did not match the original request'
+          );
+          process.exit(-1);
+        }
+
+        this.spotifyApi.authorizationCodeGrant(authResult.code, async (error, data) => {
           try {
             if (error) {
-              console.log("BLARDY --- " + data)
               console.error(error);
               process.exit(-1);
             }
-            console.log("AFTER THE TRY ERROR IF")
             const accessToken = data.body['access_token'];
             const refreshToken = data.body['refresh_token'];
             const expireTime = this.calculateExpireTime(data.body['expires_in']);
             this.writeNewSpotifyAuth(accessToken, refreshToken, expireTime);
             this.spotifyApi.setAccessToken(accessToken);
             this.spotifyApi.setRefreshToken(refreshToken);
-            console.log("BEFORE onAuth INSIDE TRY/CATCH")
             await onAuth();
-            console.log("AFTER onAuth INSIDE TRY/CATCH")
           } catch (e) {
-            console.error(`Error: Unable to dothethingwewantittodo - ${e}`);
+            console.error(`Error: Unable to finish Spotify authorization - ${e}`);
           }
         });
       });
     } catch (e) {
-      console.error(`Error: Unable to perfomNewAuthorization - ${e}`);
+      console.error(`Error: Unable to perform new Spotify authorization - ${e}`);
     }
   }
 
@@ -349,5 +370,9 @@ export default class SpotifyService {
 
   private hasTokenExpired(): boolean {
     return new Date().getTime() / 1000 >= this.spotifyAuth.expireTime;
+  }
+
+  private generateAuthState(): string {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
   }
 }
