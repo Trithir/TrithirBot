@@ -1,10 +1,13 @@
 import tmi, { ChatUserstate } from 'tmi.js';
-import { getTrackIdFromLink, SPOTIFY_LINK_START } from './messageUtils';
 import SpotifyService from './spotify.service';
-import { TWITCH_CHANNEL, COMMAND_PREFIX, DROP_PREFIX, DROPFIX_PREFIX, BURP_PREFIX, BOT_USERNAME, TWITCH_TOKEN, COMMAND_PREFIX2, SHOUT_PREFIX, NOWPLAYING_PREFIX, CLEAR_PLAYLIST_PREFIX, HELP_PREFIX, DISCORD_PREFIX, LURK_PREFIX, COSMIC_LINKS } from './config.json';
-import { getArtistName, getSongName } from './messageUtils';
+import TtsService from './tts.service';
+import { BOT_USERNAME, TWITCH_CHANNEL, TWITCH_TOKEN } from './config.json';
+import { buildCommands } from './commands';
+import { CommandContext, TwitchCommand } from './commands/types';
 
 export default class TwitchService {
+  private readonly commands: TwitchCommand[];
+
   twitchOptions = {
     channels: [TWITCH_CHANNEL],
     identity: {
@@ -16,7 +19,9 @@ export default class TwitchService {
   twitchClient = tmi.client(this.twitchOptions);
   say = (s: string) => { this.twitchClient.say(TWITCH_CHANNEL, s); }
 
-  constructor(private spotifyService: SpotifyService) { }
+  constructor(private spotifyService: SpotifyService, private ttsService: TtsService) {
+    this.commands = buildCommands();
+  }
 
   public async connectToChat() {
     this.twitchClient.on('connected', (_addr: string, _port: number) => console.log(`Connected to ${TWITCH_CHANNEL}'s chat`));
@@ -44,151 +49,24 @@ export default class TwitchService {
     if (self) {
       return;
     }
+
     console.log(msg);
     console.log(_userState);
-    if (COMMAND_PREFIX && msg.startsWith(COMMAND_PREFIX)) {
-      console.log('>>>>>>>>>>COMMAND_PREFIX>>>>>>>>>');
-      let request = this.RemovePrefix(msg, COMMAND_PREFIX)
-      if (request.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
-      {
-        await this.handleSpotifyLink(request);
-      } else {
-        await this.handleSearch(request);
-      }
-      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
+
+    const command = this.commands.find((candidate) => candidate.matches(msg));
+
+    if (!command) {
+      return;
     }
 
-    else if (COMMAND_PREFIX2 && msg.startsWith(COMMAND_PREFIX2)) {
-      console.log('>>>>>>>>COMMAND_PREFIX2>>>>>>>>>>');
-      let request = this.RemovePrefix(msg, COMMAND_PREFIX2)
-      if (request.startsWith(SPOTIFY_LINK_START))//add OR operator with track/artist
-      {
-        await this.handleSpotifyLink(request);
-      } else {
-        await this.handleSearch(request);
-      }
-      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-    }
+    const commandContext: CommandContext = {
+      message: msg,
+      userState: _userState,
+      spotifyService: this.spotifyService,
+      ttsService: this.ttsService,
+      say: this.say,
+    };
 
-    else if (CLEAR_PLAYLIST_PREFIX && msg.startsWith(CLEAR_PLAYLIST_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      let request = this.RemovePrefix(msg, CLEAR_PLAYLIST_PREFIX)
-      this.spotifyService.ClearPlaylist(this.say)
-      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-    }
-
-    else if (HELP_PREFIX && msg.startsWith(HELP_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.twitchClient.say(TWITCH_CHANNEL, "Try one of these: !cc !song, !drop, !oops, !burp, !lurk, !discord !gimme artist - song, !gimme spotify.link");
-      console.log('<<<<<<<<<<<<<<Someone Wanted Help<<<<<<<<<<<<<<<<');
-    }
-
-    else if (LURK_PREFIX && msg.startsWith(LURK_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.twitchClient.say(TWITCH_CHANNEL, _userState.username + " has slunk to the shadows!");
-      console.log('<<<<<<<<<<<<<<Lurkerer man!<<<<<<<<<<<<<<<<');
-    }
-
-    else if (DISCORD_PREFIX && msg.startsWith(DISCORD_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.twitchClient.say(TWITCH_CHANNEL, "Join the discordussion!  https://discord.gg/zPTeK674fS");
-      console.log('<<<<<<<<<<<<<<Discord<<<<<<<<<<<<<<<<');
-    }
-
-    else if (NOWPLAYING_PREFIX && msg.startsWith(NOWPLAYING_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.spotifyService.getCurrentSong(this.say)
-      console.log('<<<<<<<<<<<<<<PUT YOUR HANDS UPP!<<<<<<<<<<<<<<<<');
-    }
-
-    else if (DROP_PREFIX && msg.startsWith(DROP_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      const fsLibrary = require('fs')
-      let count = await fsLibrary.readFile('DropCount.txt', ((error: any, txtString: any) => {
-        count = +txtString + 1;
-        this.twitchClient.say(TWITCH_CHANNEL, "Trithir hath droppen the stix " + count + " times!");
-        fsLibrary.writeFile('DropCount.txt', count.toString(), (error: any) => {
-          if (error) throw error;
-        })
-        if (error) throw error;
-      }))
-      console.log('Butter Fingers!')
-      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-    }
-
-    else if (DROPFIX_PREFIX && msg.startsWith(DROPFIX_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      const fsLibrary = require('fs')
-      let count = await fsLibrary.readFile('DropCount.txt', ((error: any, txtString: any) => {
-        count = +txtString - 1;
-        this.twitchClient.say(TWITCH_CHANNEL, "Wooops! Trithir hath only droppen the stix " + count + " times!");
-        fsLibrary.writeFile('DropCount.txt', count.toString(), (error: any) => {
-          if (error) throw error;
-        })
-        if (error) throw error;
-      }))
-      console.log('They trying to mess up my stick count!')
-      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-    }
-
-    else if (BURP_PREFIX && msg.startsWith(BURP_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      const fsLibrary = require('fs')
-      let count = await fsLibrary.readFile('BurpCount.txt', ((error: any, txtString: any) => {
-        count = +txtString + 1;
-        this.twitchClient.say(TWITCH_CHANNEL, "DID YOU HEAR THAT?! " + count + " belches and counting!!");
-        fsLibrary.writeFile('BurpCount.txt', count.toString(), (error: any) => {
-          if (error) throw error;
-        })
-        if (error) throw error;
-      }))
-      console.log('BEEEEEEEEEEEEEEEEEEEEEEEEEELCH');
-      console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<');
-    }
-
-    else if (SHOUT_PREFIX && msg.startsWith(SHOUT_PREFIX)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      let user = this.RemovePrefix(msg, SHOUT_PREFIX)
-      this.twitchClient.say(TWITCH_CHANNEL, "A friend of Trithir deserves a follow! >>> https://www.twitch.tv/" + user);
-      console.log('<<<<<<<<<<<<<<PUT YOUR HANDS UPP!<<<<<<<<<<<<<<<<');
-    }
-    
-    else if (COSMIC_LINKS && msg.startsWith(COSMIC_LINKS)) {
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-      this.twitchClient.say(TWITCH_CHANNEL, "Check out the band! Spotify: https://open.spotify.com/artist/416Z5tNawyaQwz8K9s6t7h?si=-UJHjfKAQeWUg0FLxmnmnQ BandCamp: https://cosmicconjurers.bandcamp.com/ YouTube: https://www.youtube.com/@CosmicConjurers");
-      console.log('<<<<<<<<<<<<<<COSMIC FOLLOWERS!<<<<<<<<<<<<<<<<');
-    }
-  }
-
-  private async handleSearch(message: string) {
-    const songName = getSongName(message);
-    const artistName = getArtistName(message);
-    if (songName && artistName) {
-      await this.spotifyService.searchAndAdd(songName, artistName, this.say
-      )
-    } else {
-      this.twitchClient.say(TWITCH_CHANNEL, "Unable to parse songName and artistName from message. Remember, the format is !gimme artist - song ");
-      console.error('Unable to parse songName and artistName from message')
-    }
-  }
-
-
-  private async handleSpotifyLink(message: string) {
-
-    const trackId = getTrackIdFromLink(message);
-    console.log(trackId)
-
-    if (trackId) {
-      console.log(trackId)
-      await this.spotifyService.addTrack(trackId, this.say);
-    } else {
-      console.error('Unable to parse track ID from message');
-    }
-  }
-
-  private RemovePrefix(message: string, prefix: string) {
-    //remove the prefix and return the rest of the message
-    let msg = message.substring(`${prefix} `.length);
-    return msg;
+    await command.execute(commandContext);
   }
 }

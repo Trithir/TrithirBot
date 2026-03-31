@@ -7,5 +7,7 @@
 			"path": "..\\ElectronBot"
 		}
 	],
-  "settings": {}
+  "settings": {
+    "python.terminal.activateEnvironment": true
+  }
 }

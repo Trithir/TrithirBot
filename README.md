@@ -1,97 +1,160 @@
-# Twitch Spotify Request Bot
+# TrithirBot
 
-## What is this?
+Twitch chat bot for Spotify song requests, stream utility commands, and local Piper-based TTS.
 
-This is a bot that listens to the chat of a given Twitch stream for messages
-with a Spotify song link, or artist - track requests in them, and then adds that song to a playlist and/or
-your queue. 
+## What It Does
 
-Examples:
+- Watches Twitch chat with `tmi.js`
+- Adds Spotify tracks from chat messages
+- Searches Spotify by `artist - song`
+- Reports the currently playing Spotify song
+- Clears the secondary Spotify playlist with `!scrub`
+- Supports community/counter commands like `!help`, `!discord`, `!lurk`, `!drop`, and `!burp`
+- Generates local TTS with Piper and plays it through normal Windows system audio for Prism Live Studio to capture
 
-✔️ Message that WOULD be picked up:
+## Current Commands
 
-```
-!Sr https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ pls play this, it's a bop
+- `!gimme https://open.spotify.com/track/...`
+- `!gimmie https://open.spotify.com/track/...`
+- `!gimme artist - song`
+- `!song`
+- `!scrub`
+- `!help`
+- `!discord`
+- `!lurk`
+- `!drop`
+- `!woops`
+- `!burp`
+- `!so username`
+- `!cc`
+- `!tts your message here`
+- `!ttsopen`
+- `!ttsclose`
+- `!ttsmods`
+- `!ttssubscribers`
+- `!ttscheer`
 
-!Sr Reel big fish - trendy
+## Requirements
 
-!Sr social distortion-prison bound
+- Node.js
+- npm
+- Spotify developer app credentials
+- Twitch bot account/token
+- Windows for the current local audio playback approach
+- Prism Live Studio capturing normal desktop/system audio for the current TTS setup
 
-```
-Note: Artist name and song title must be spelled correctly(I think), and in the proper order. Letter case does not matter.
+For local TTS:
 
-❌ Message that WOULD NOT be picked up:
-
-```
-can you please play this !Sr https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=x-_FFgqBRB20mzW_lM7kDQ
-
-```
-
-## Prerequisites
-
-- Some basic programming knowledge (running terminal commands and editing JSON
-  files)
-- Node (developed and tested on 14.6.0 - your mileage may vary on other versions)
-- Yarn (NPM does not work)
-- A Spotify account
+- Python in a local `.venv`
+- `piper-tts` installed in that `.venv`
+- `pathvalidate` installed in that `.venv`
+- At least one Piper voice model in `piper/models`
 
 ## Setup
 
-- Go to the [Spotify developer dashboard](https://developer.spotify.com/dashboard/)
-  and create a new application. The app can have whatever name and description you want
-- Once the app is created, click on Edit Settings and add a redirect URL of
-  `http://localhost:8000/spotifyAuth` (NB: the port will be whatever you have
-  set as the `AUTH_SERVER_PORT` in the `config.json` file, by default it is 8000)
-- Run `yarn`
-- Create a `src/config.json` file based on `src/config.json.template` file and fill
-  in the fields. Everything keeps the quotes except true/falase statements and server port.
-  - The playlist ID can be found by right clicking on the playlist ->
-    clicking Share -> Copy/Paste the Spotify playlist URL in the code and then copy the ID 
-    between `https://open.spotify.com/playlist/` and ?        
-      eg. `https://open.spotify.com/playlist/[COPY_THIS_NONSENSE_ONLY]?pm=58g4hj8es4f3g1`)
-  - The Spotify client ID and secret are obtained from the application you
-    created in the Spotify developer dashboard
-- Run `yarn start` in the root directory of the project
-- Open the authorization link and give the app the required permissions
-- If you have ADD_TO_QUEUE toggled on, ensure you have the Spotify client open and that it is active (i.e. is playing a song)
-- Type a Spotify link in the chat (ensuring the link is the first piece of text in the message)
-  and make sure it shows up in your desired playlist (Spotify links should start
-  with `https://open.spotify.com/track/`)
-- If there's a problem with Spotify authorization at any point, try deleting the
-  `spotify-auth-store.json` file and starting the app again
-  
-## Open Source Libraries Used
-### [Spotify Web API Node](https://github.com/thelinmichael/spotify-web-api-node)
-Used for connecting to and performing actions using Spotify
+### 1. Install Node dependencies
 
-MIT License
+```bash
+npm install
+```
 
-### [tmi.js](https://github.com/tmijs/tmi.js)
-Used for connecting to Twitch chat
+### 2. Create config
 
-MIT License
+Copy `src/config.json.template` to `src/config.json` and fill it out.
 
-### [Express](https://github.com/expressjs/express)
-Used for creating a temporary local web server to retrieve the callback from the Spotify authorization
+Important current values:
 
-MIT License
+- Spotify redirect URI should be `http://127.0.0.1:8000/spotifyAuth`
+- TTS uses:
+  - `TTS_PYTHON_PATH`
+  - `TTS_MODEL_PATH`
+  - `TTS_OUTPUT_DIR`
 
-### [Nodemon](https://github.com/remy/nodemon)
-Used to speed up development with hot reload
+### 3. Spotify app setup
 
-MIT License
+- Create or open your Spotify developer app
+- Add this exact redirect URI:
 
-### [Prettier](https://github.com/prettier/prettier)
-Used to make code pretty
+```text
+http://127.0.0.1:8000/spotifyAuth
+```
 
-MIT License
+If Spotify auth gets weird, delete `spotify-auth-store.json` and authorize again.
 
-### [ts-node](https://github.com/TypeStrong/ts-node)
-Used to run TypeScript
+### 4. Piper setup
 
-MIT License
+Create and activate a venv, then install Piper:
 
-### [TypeScript](https://www.typescriptlang.org/)
-Used for strong typings
+```bash
+python -m venv .venv
+source .venv/Scripts/activate
+python -m pip install --upgrade pip
+python -m pip install piper-tts pathvalidate
+mkdir -p piper/models piper/output
+```
 
-Apache 2.0 License
+Put your Piper voice files in `piper/models`:
+
+- `your-voice.onnx`
+- `your-voice.onnx.json`
+
+The bot currently looks in `piper/models` and uses the first `.onnx` model it finds there.
+
+### 5. VS Code convenience
+
+VS Code is configured to prefer the repo’s `.venv` for new terminals:
+
+- `.vscode/settings.json`
+- `TrithirBot.code-workspace`
+
+That helps for local Piper work, but the bot itself does not require you to manually activate the venv before `npm start` because it calls the configured Python path directly.
+
+## Running The Bot
+
+From the repo root:
+
+```bash
+npm start
+```
+
+This still:
+
+1. Builds TypeScript
+2. Starts the bot
+3. Opens Spotify auth flow if needed
+4. Connects to Twitch chat once Spotify is ready
+
+## TTS Notes
+
+The first `!tts` version is intentionally simple:
+
+- Uses local Piper
+- Plays through normal Windows system audio
+- Assumes Prism Live Studio is already capturing that audio
+- Uses a single playback queue so requests do not overlap
+- Is mod-only by default
+- Supports mod commands to switch TTS between `open`, `closed`, `mods`, `subscribers`, and `cheer` modes
+- Uses a single shared 30-second denial-message cooldown for unauthorized access attempts
+
+Example local Piper test output filename:
+
+- `piper/output/output.wav`
+
+Current defaults live in `src/config.json`:
+
+- `TTS_ENABLED`
+- `TTS_PREFIX`
+- `TTS_MAX_LENGTH`
+- `TTS_USER_COOLDOWN_SECONDS`
+- `TTS_GLOBAL_COOLDOWN_SECONDS`
+- `TTS_MODE`
+- `TTS_DENY_COOLDOWN_SECONDS`
+- `TTS_PYTHON_PATH`
+- `TTS_MODEL_PATH`
+- `TTS_OUTPUT_DIR`
+
+## Notes
+
+- Secrets should not be committed long-term; move them to environment variables later.
+- The app currently targets a Windows-local TTS playback flow.
+- The roadmap for upcoming work lives in `ROADMAP.md`.
