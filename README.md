@@ -10,7 +10,8 @@ Twitch chat bot for Spotify song requests, stream utility commands, and local Pi
 - Reports the currently playing Spotify song
 - Clears the secondary Spotify playlist with `!scrub`
 - Supports community/counter commands like `!help`, `!discord`, `!lurk`, `!drop`, and `!burp`
-- Generates local TTS with Piper and plays it through normal Windows system audio for Prism Live Studio to capture
+- Tracks active lurkers in a transparent startup window
+- Generates local TTS with Piper and routes playback through that same lurk window for dedicated Prism capture
 
 ## Current Commands
 
@@ -40,8 +41,8 @@ Twitch chat bot for Spotify song requests, stream utility commands, and local Pi
 - npm
 - Spotify developer app credentials
 - Twitch bot account/token
-- Windows for the current local audio playback approach
-- Prism Live Studio capturing normal desktop/system audio for the current TTS setup
+- Windows PowerShell/WPF for the current local lurk/audio window
+- Prism Live Studio app-audio capture if you want to isolate the lurk/TTS window from desktop audio
 
 For local TTS:
 
@@ -129,8 +130,8 @@ This still:
 The first `!tts` version is intentionally simple:
 
 - Uses local Piper
-- Plays through normal Windows system audio
-- Assumes Prism Live Studio is already capturing that audio
+- Plays through the startup lurk window
+- Can be captured in Prism Live Studio as a dedicated app source
 - Uses a single playback queue so requests do not overlap
 - Is mod-only by default
 - Supports mod commands to switch TTS between `open`, `closed`, `mods`, `subscribers`, and `cheer` modes

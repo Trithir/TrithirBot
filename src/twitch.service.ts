@@ -1,4 +1,5 @@
 import tmi, { ChatUserstate } from 'tmi.js';
+import LurkService from './lurk.service';
 import SpotifyService from './spotify.service';
 import TtsService from './tts.service';
 import { BOT_USERNAME, TWITCH_CHANNEL, TWITCH_TOKEN } from './config.json';
@@ -19,7 +20,11 @@ export default class TwitchService {
   twitchClient = tmi.client(this.twitchOptions);
   say = (s: string) => { this.twitchClient.say(TWITCH_CHANNEL, s); }
 
-  constructor(private spotifyService: SpotifyService, private ttsService: TtsService) {
+  constructor(
+    private spotifyService: SpotifyService,
+    private ttsService: TtsService,
+    private lurkService: LurkService
+  ) {
     this.commands = buildCommands();
   }
 
@@ -42,7 +47,7 @@ export default class TwitchService {
 
   private async handleMessage(
     _target: string,
-    _userState: ChatUserstate,
+    userState: ChatUserstate,
     msg: string,
     self: boolean
   ) {
@@ -51,7 +56,8 @@ export default class TwitchService {
     }
 
     console.log(msg);
-    console.log(_userState);
+    console.log(userState);
+    this.lurkService.clearIfActive(userState, msg);
 
     const command = this.commands.find((candidate) => candidate.matches(msg));
 
@@ -61,7 +67,8 @@ export default class TwitchService {
 
     const commandContext: CommandContext = {
       message: msg,
-      userState: _userState,
+      userState,
+      lurkService: this.lurkService,
       spotifyService: this.spotifyService,
       ttsService: this.ttsService,
       say: this.say,

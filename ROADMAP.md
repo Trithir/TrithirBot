@@ -307,6 +307,27 @@ Not for immediate implementation, but worth keeping in mind:
 - Improve playlist clearing for playlists longer than 55 tracks
 - Add tests for message parsing and command dispatch
 
+## General Checklist
+
+General items that still need to be completed or revisited:
+
+- [ ] Move secrets out of `src/config.json` and into environment variables
+- [ ] Add tests for message parsing and command dispatch
+- [ ] Add duplicate song protection
+- [ ] Improve playlist clearing for playlists longer than 55 tracks
+- [ ] Add better Spotify link parsing and request validation
+- [ ] Add role-based permissions for risky commands like `!scrub`
+- [ ] Add a `!ttsmode` command so chat/mods can see the current TTS mode
+- [ ] Add blocked-word filtering for TTS
+- [ ] Add queue status messages plus skip/clear controls for TTS
+- [ ] Add fallback behavior if Piper is unavailable
+- [ ] Add `LurkService` and track lurkers in memory
+- [ ] Add a local overlay data source for lurk state
+- [ ] Build the lurk display UI
+- [ ] Decide whether the lurk display should stay browser-source-first or become a standalone window first
+- [ ] If we want isolated Prism capture, launch a standalone lurk/audio window on app start
+- [ ] Route TTS playback through that standalone window so Prism Live Studio can capture it as a dedicated app source
+
 ## Future Feature: On-Screen Lurk Presence
 
 ### Goal
@@ -366,6 +387,13 @@ Possible files/services:
 - `overlay/lurkers.css`
 - `overlay/lurkers.js`
 
+Alternative path for Prism Live Studio app-audio capture:
+
+- Launch a small standalone lurk window when the bot starts
+- Let that window render the lurk display and also handle TTS audio playback
+- Send lurk-state updates and TTS playback requests into that window through local IPC, websocket, or HTTP
+- Use Prism Live Studio app-audio capture on that dedicated window/app instead of relying on general desktop audio
+
 #### Twitch Integration
 
 Behavior proposal:
@@ -408,6 +436,26 @@ Tasks:
 Success criteria:
 
 - OBS can show the active lurker list in real time
+
+#### Phase 2.5: Standalone Lurk And Audio Window
+
+Goal:
+
+- Make the lurk display double as a dedicated TTS playback target for Prism Live Studio
+
+Tasks:
+
+- Add a lightweight local window that launches with the app
+- Move lurk rendering into that window
+- Route generated TTS playback through that window instead of PowerShell system-audio playback
+- Add a small local message bridge between the bot runtime and the window
+- Confirm Prism Live Studio can capture that window/app audio as its own source
+
+Success criteria:
+
+- Starting the app also starts a lurk/audio window
+- Lurk visuals update there in real time
+- TTS plays from that same app/window so Prism Live Studio can capture it as a dedicated source
 
 #### Phase 3: Theming and Polish
 

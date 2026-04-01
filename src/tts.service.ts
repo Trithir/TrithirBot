@@ -18,6 +18,7 @@ import {
   TTS_SUBSCRIBERS_PREFIX,
   TTS_USER_COOLDOWN_SECONDS,
 } from './config.json';
+import LurkWindowService from './lurk-window.service';
 
 type TtsResult = {
   accepted: boolean;
@@ -33,6 +34,8 @@ export default class TtsService {
   private isEnabled = TTS_ENABLED;
   private mode: TtsMode = this.resolveInitialMode();
   private lastDeniedMessageAt = 0;
+
+  constructor(private readonly lurkWindowService?: LurkWindowService) {}
 
   public async enqueue(text: string, userState: ChatUserstate): Promise<TtsResult> {
     if (!this.isEnabled) {
@@ -169,6 +172,11 @@ export default class TtsService {
 
     try {
       await this.runPiper(text, outputFilePath);
+      if (this.lurkWindowService) {
+        await this.lurkWindowService.enqueueAudio(outputFilePath, username);
+        return;
+      }
+
       await this.playAudio(outputFilePath);
     } finally {
       await fs.unlink(outputFilePath).catch(() => undefined);
